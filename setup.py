@@ -10,7 +10,8 @@ setup(
     install_requires = [
         'M2Crypto>=0.20.1',
         'BeautifulSoup>=3.2.0',
-        'https://github.com/pcraston/pyxmlsec/archive/master.zip',
+        'libxml2>=2.6.21',
+        'pyXMLSec>=0.3.0',
     ],
     license = 'MIT',
     packages = ['saml2idp', 'saml2idp.tests'],
