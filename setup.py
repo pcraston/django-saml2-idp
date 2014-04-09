@@ -10,7 +10,7 @@ setup(
     install_requires = [
         'M2Crypto>=0.20.1',
         'BeautifulSoup>=3.2.0',
-        'libxml2>=2.6.21',
+        'libxml2-python>=2.6.21',
         'pyXMLSec>=0.3.0',
     ],
     license = 'MIT',
