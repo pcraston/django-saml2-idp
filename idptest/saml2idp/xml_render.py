@@ -78,6 +78,7 @@ def _encrypt_assertion(unencrypted):
     mngr = xmlsec.KeysMngr()
     config = saml2idp_metadata.SAML2IDP_CONFIG
     key = xmlsec.cryptoAppKeyLoad(config['private_key_file'], xmlsec.KeyDataFormatPem, None, None, None)
+    key.setName(config['private_key_file'])
     # add the key to the manager
     xmlsec.cryptoAppDefaultKeysMngrAdoptKey(mngr, key)
 
@@ -105,7 +106,6 @@ def _encrypt_assertion(unencrypted):
     enc_ctx.encKey = key
     # Encrypt the data
     enc_ctx.xmlEncrypt(enc_data_node, doc.getRootElement())
-
 
     # Destroy all
     key.destroy()
