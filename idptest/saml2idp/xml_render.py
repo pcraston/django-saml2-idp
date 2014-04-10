@@ -130,7 +130,7 @@ def _encrypt_assertion(unencrypted):
     mngr.addKey(key)
 
     doc = fromstring(unencrypted)
-    encData = EncData(xmlsec.transformAes128CbcId, type=xmlsec.TypeEncElement)
+    encData = EncData(xmlsec.TransformDes3Cbc, type=xmlsec.TypeEncElement)
     encData.ensureCipherValue() # target for encryption result
     keyInfo = encData.ensureKeyInfo()
     encKey = keyInfo.addEncryptedKey(xmlsec.TransformRsaPkcs1)
