@@ -130,7 +130,7 @@ def _encrypt_assertion(unencrypted):
     mngr.addKey(key)
 
     doc = fromstring(unencrypted)
-    encData = EncData(xmlsec.TransformDes3Cbc, type=xmlsec.TypeEncElement)
+    encData = EncData(xmlsec.transformAes128CbcId, type=xmlsec.TypeEncElement)
     encData.ensureCipherValue() # target for encryption result
     keyInfo = encData.ensureKeyInfo()
     encKey = keyInfo.addEncryptedKey(xmlsec.TransformRsaPkcs1)
@@ -160,6 +160,8 @@ def _get_assertion_xml(template, parameters, signed=False, encrypted=False):
         xml_to_return = _sign_assertion(xml_to_return, template, params)
     if encrypted:
         xml_to_return = _encrypt_assertion(xml_to_return)
+        xml_to_return = '<saml:EncryptedAssertion xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">' \
+                        '%s</saml:EncryptedAssertion>' % (xml_to_return,)
     return xml_to_return
 
 
