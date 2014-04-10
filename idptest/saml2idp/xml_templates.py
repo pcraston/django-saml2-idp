@@ -118,7 +118,7 @@ ASSERTION_SALESFORCE = (
 
 # Minimal response:
 RESPONSE = (
-    '<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" '
+    '<?xml version="1.0" encoding="UTF-8"?><samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" '
                     'Destination="${ACS_URL}" '
                     'ID="${RESPONSE_ID}" '
                     '${IN_RESPONSE_TO}'
