@@ -10,7 +10,6 @@ setup(
     install_requires = [
         'M2Crypto>=0.20.1',
         'BeautifulSoup>=3.2.0',
-        'lxml>=3.3.4',
         'dm.xmlsec.binding>=1.2',
     ],
     license = 'MIT',
