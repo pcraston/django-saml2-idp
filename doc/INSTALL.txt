@@ -2,8 +2,12 @@ PRE-REQUISITES
 ==============
 To use the "saml2idp" app, you must download and install these libraries:
 - M2Crypto @ http://chandlerproject.org/bin/view/Projects/MeTooCrypto
-- python-libxml2 http://xmlsoft.org/python.html
-- PyXMLSec http://pyxmlsec.labs.libre-entreprise.org and https://github.com/pcraston/pyxmlsec/archive/master.zip
+
+try again using dm.xmlsec.binding https://pypi.python.org/pypi/dm.xmlsec.binding/1.2
+- dm.xmlsec.binding
+
+#- python-libxml2 http://xmlsoft.org/python.html
+#- PyXMLSec http://pyxmlsec.labs.libre-entreprise.org and https://github.com/pcraston/pyxmlsec/archive/master.zip
 
 
 UBUNTU Packages
@@ -12,9 +16,9 @@ M2Crypto is also available as a system package for Ubuntu (at least on 9.10).
 The name is 'python-m2crypto'. You can use the "Synaptic Package Manager" or
 the "apt-get" command-line program to install it.
 
-python-libxml2 is also available as a system package for Ubuntu (at least on 9.10).
-The name is 'python-libxml2'. You can use the "Synaptic Package Manager" or
-the "apt-get" command-line program to install it.
+# python-libxml2 is also available as a system package for Ubuntu (at least on 9.10).
+# The name is 'python-libxml2'. You can use the "Synaptic Package Manager" or
+# the "apt-get" command-line program to install it.
 
 RUNNING THE SAMPLE PROJECT
 ==========================

@@ -7,8 +7,15 @@ from xml_signing import get_signature_xml
 from xml_templates import ATTRIBUTE, ATTRIBUTE_STATEMENT, \
     ASSERTION_GOOGLE_APPS, ASSERTION_SALESFORCE, RESPONSE, SUBJECT
 import saml2idp_metadata
-import libxml2
-import xmlsec
+# import libxml2
+# import xmlsec
+
+from dm.xmlsec.binding.tmpl import parse, Element, SubElement, fromstring, XML
+from dm.xmlsec.binding.tmpl import EncData
+from lxml.etree import tostring
+from os.path import dirname, basename
+import dm.xmlsec.binding as xmlsec
+
 
 def _get_attribute_statement(params):
     """
@@ -75,46 +82,65 @@ def _encrypt_assertion(unencrypted):
     # Create and initialize keys manager, we use a simple list based
     # keys manager, implement your own KeysStore klass if you need
     # something more sophisticated
-    mngr = xmlsec.KeysMngr()
+    # mngr = xmlsec.KeysMngr()
+    # config = saml2idp_metadata.SAML2IDP_CONFIG
+    # key = xmlsec.cryptoAppKeyLoad(config['public_key_file'], xmlsec.KeyDataFormatPem, None, None, None)
+    # key.setName(config['public_key_file'])
+    # # add the key to the manager
+    # xmlsec.cryptoAppDefaultKeysMngrAdoptKey(mngr, key)
+    #
+    # # now encrypt the xml
+    # doc = libxml2.parseDoc(unencrypted)
+    # # Create encryption template to encrypt XML file and replace
+    # # its content with encryption result
+    # enc_data_node = xmlsec.TmplEncData(doc, xmlsec.transformAes128CbcId(), None, xmlsec.TypeEncElement, None, None)
+    # # put encrypted data in the <enc:CipherValue/> node
+    # enc_data_node.ensureCipherValue()
+    # # add <dsig:KeyInfo/>
+    # key_info_node = enc_data_node.ensureKeyInfo(None)
+    # # Add <enc:EncryptedKey/> to store the encrypted session key
+    # enc_key_node = key_info_node.addEncryptedKey(xmlsec.transformRsaPkcs1Id(), None, None, None)
+    # # put encrypted key in the <enc:CipherValue/> node
+    # enc_key_node.ensureCipherValue()
+    # # Add <dsig:KeyInfo/> and <dsig:KeyName/> nodes to <enc:EncryptedKey/>
+    # key_info_node2 = enc_key_node.ensureKeyInfo(None)
+    # # Set key name so we can lookup key when needed
+    # key_info_node2.addKeyName(config['public_key_file'])
+    # # Create encryption context
+    # enc_ctx = xmlsec.EncCtx(mngr)
+    # # Generate a Triple DES key
+    # key = xmlsec.keyGenerate(xmlsec.keyDataDesId(), 192, xmlsec.KeyDataTypeSession)
+    # enc_ctx.encKey = key
+    # # Encrypt the data
+    # enc_ctx.xmlEncrypt(enc_data_node, doc.getRootElement())
+    #
+    # # Destroy all
+    # key.destroy()
+    # mngr.destroy()
+    # enc_ctx.destroy()
+    # enc_data_node.freeNode()
+    # # doc.freeDoc()
+    # return doc
+
+    xmlsec.initialize()
     config = saml2idp_metadata.SAML2IDP_CONFIG
-    key = xmlsec.cryptoAppKeyLoad(config['private_key_file'], xmlsec.KeyDataFormatPem, None, None, None)
-    key.setName(config['private_key_file'])
-    # add the key to the manager
-    xmlsec.cryptoAppDefaultKeysMngrAdoptKey(mngr, key)
+    mngr = xmlsec.KeysMngr()
+    key = xmlsec.Key.load(config['public_key_file'], xmlsec.KeyDataFormatPem)
+    key.name = basename(config['public_key_file'])
+    mngr.addKey(key)
 
-    # now encrypt the xml
-    doc = libxml2.parseDoc(unencrypted)
-    # Create encryption template to encrypt XML file and replace
-    # its content with encryption result
-    enc_data_node = xmlsec.TmplEncData(doc, xmlsec.transformAes128CbcId(), None, xmlsec.TypeEncElement, None, None)
-    # put encrypted data in the <enc:CipherValue/> node
-    enc_data_node.ensureCipherValue()
-    # add <dsig:KeyInfo/>
-    key_info_node = enc_data_node.ensureKeyInfo(None)
-    # Add <enc:EncryptedKey/> to store the encrypted session key
-    enc_key_node = key_info_node.addEncryptedKey(xmlsec.transformRsaPkcs1Id(), None, None, None)
-    # put encrypted key in the <enc:CipherValue/> node
-    enc_key_node.ensureCipherValue()
-    # Add <dsig:KeyInfo/> and <dsig:KeyName/> nodes to <enc:EncryptedKey/>
-    key_info_node2 = enc_key_node.ensureKeyInfo(None)
-    # Set key name so we can lookup key when needed
-    key_info_node2.addKeyName(config['private_key_file'])
-    # Create encryption context
-    enc_ctx = xmlsec.EncCtx(mngr)
-    # Generate a Triple DES key
-    key = xmlsec.keyGenerate(xmlsec.keyDataDesId(), 192, xmlsec.KeyDataTypeSession)
-    enc_ctx.encKey = key
-    # Encrypt the data
-    enc_ctx.xmlEncrypt(enc_data_node, doc.getRootElement())
-
-    # Destroy all
-    key.destroy()
-    mngr.destroy()
-    enc_ctx.destroy()
-    enc_data_node.freeNode()
-    # doc.freeDoc()
-    return doc
-
+    doc = fromstring(unencrypted)
+    encData = EncData(xmlsec.TransformDes3Cbc, type=xmlsec.TypeEncElement)
+    encData.ensureCipherValue() # target for encryption result
+    keyInfo = encData.ensureKeyInfo()
+    encKey = keyInfo.addEncryptedKey(xmlsec.TransformRsaPkcs1)
+    encKey.ensureCipherValue()
+    encKeyInfo = encKey.ensureKeyInfo()
+    encKeyInfo.addKeyName(key.name)
+    encCtx = xmlsec.EncCtx(mngr)
+    encCtx.encKey = xmlsec.Key.generate(xmlsec.KeyDataDes, 192, xmlsec.KeyDataTypeSession)
+    ed = encCtx.encryptXml(encData, doc)
+    return tostring(ed.getroottree())
 
 def _get_assertion_xml(template, parameters, signed=False, encrypted=False):
     # Reset signature.
