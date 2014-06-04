@@ -16,6 +16,11 @@ from lxml.etree import tostring
 from os.path import dirname, basename
 import dm.xmlsec.binding as xmlsec
 
+import dm.xmlsec.binding as xmlsec
+from dm.xmlsec.binding.tmpl import parse, Element, SubElement, \
+    fromstring, XML
+from dm.xmlsec.binding.tmpl import Signature
+
 
 def _get_attribute_statement(params):
     """
@@ -192,10 +197,30 @@ def get_response_xml(parameters, signed=False):
         return unsigned
 
     # Sign it.
-    signature_xml = get_signature_xml(unsigned, params['RESPONSE_ID'])
-    params['RESPONSE_SIGNATURE'] = signature_xml
-    signed = template.substitute(params)
+    # signature_xml = get_signature_xml(unsigned, params['RESPONSE_ID'])
+    # params['RESPONSE_SIGNATURE'] = signature_xml
+    # signed = template.substitute(params)
+    #
+    # logging.debug('Signed:')
+    # logging.debug(signed)
+    config = saml2idp_metadata.SAML2IDP_CONFIG
+    private_key_file = config['private_key_file']
+    certificate_file = config['certificate_file']
 
-    logging.debug('Signed:')
-    logging.debug(signed)
-    return signed
+    doc = fromstring(unsigned)
+    xmlsec.initialize()
+    signature = Signature(xmlsec.TransformExclC14N,
+                          xmlsec.TransformRsaSha1
+    )
+    doc.insert(0, signature)
+    ref = signature.addReference(xmlsec.TransformSha1)
+    ref.addTransform(xmlsec.TransformEnveloped)
+    key_info = signature.ensureKeyInfo()
+    key_info.addKeyName()
+    key_info.addX509Data()
+    dsigCtx = xmlsec.DSigCtx()
+    signKey = xmlsec.Key.load(private_key_file, xmlsec.KeyDataFormatPem, None)
+    signKey.loadCert(certificate_file, xmlsec.KeyDataFormatPem)
+    dsigCtx.signKey = signKey
+    dsigCtx.sign(signature)
+    return tostring(doc)
